@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>canvas练习</title>
+    <title>跳动的心</title>
     <style>
         body,
         html {
@@ -47,8 +47,7 @@
                 var step = i / n * (Math.PI * 2); //设置心上面两点之间的角度，具体分成多少份，好像需要去试。
                 var vector = {
                     x: this.a * (16 * Math.pow(Math.sin(step), 3)),
-                    y: this.a * (13 * Math.cos(step) - 5 * Math.cos(2 * step) - 2 * Math.cos(3 * step) - Math
-                        .cos(4 * step))
+                    y: this.a * (13 * Math.cos(step) - 5 * Math.cos(2 * step) - 2 * Math.cos(3 * step) - Math.cos(4 * step))
                 }
                 this.vertices.push(vector);
             }
@@ -66,25 +65,26 @@
         }
         Heart.prototype.item = function (canvasData) {
             const [x, y] = canvasData;
-            ctx.fillStyle = 'red';
             ctx.arc(x, y, size, 0, 3);
             ctx.fill(); //开始填充
-            ctx.strokeStyle = "rgba(0,0,0,0)"; //将线条颜色设置为蓝色
+            ctx.strokeStyle = "rgba(0,0,0,0)"; //将线条颜色设置为透明
             ctx.stroke();
             ctx.beginPath();
         }
-        Heart.prototype.draw = function () {
+        Heart.prototype.draw = function (vertices) {
             ctx.clearRect(0, 0, clientWidth, clientHeight)
             canvasEl.height= clientHeight;  
             this.ctx.beginPath();
             this.ctx.translate(this.x, this.y);
             this.ctx.rotate(Math.PI);
-            for (let i = 0; i < this.vertices.length; i++) {
-                var vector = this.vertices[i];
+            this.ctx.fillStyle = 'rgba(226, 79, 4, ' + (step > 15 ? step / 20 : .5) +')';
+            vertices = vertices ? vertices : this.vertices
+            for (let i = 0; i < vertices.length; i++) {
+                var vector = vertices[i];
                 for (let j = 0; j < 8; j++) {
                     for (let k = 1; k < 4; k++) {
-                        let x = vector.x + offsets[i * j + k].x
-                        let y = vector.y + offsets[i * j + k].y
+                        let x = vector.x + offsets[i * j + k].x / (i < this.n ? 0.3 : 2);
+                        let y = vector.y + offsets[i * j + k].y / (i < this.n ? 0.3 : 2);
                         this.item([x, y]);
                     }
                 }
@@ -94,11 +94,11 @@
         var s = 0;
         function asc() {
             step = s%2 == 0 ? (step + 1) : (step - 1);
-            let t = step < 19 && step > 1 && s%2 == 0 ? 5 : 32
-            if(step == 20) s++;
-            if (step == 0) s++;
-            var heart = new Heart(ctx, (50 + step) / 10, n)
-            heart.draw();
+            let t = step < 19 && step > 1 && s%2 == 0 ? 1 : 32
+            if(step == 20 || step == 0) s++;
+            var heart = new Heart(ctx, (50 + step) / 10, n);
+            var heart1 = new Heart(ctx, 10, n);
+            heart1.draw(heart.vertices.concat(heart1.vertices));
             setTimeout(function () {
                 asc();
             }, t)
